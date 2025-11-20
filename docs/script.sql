@@ -1,98 +1,83 @@
-CREATE DATABASE sys_lab;
+-- 1. CRIAÇÃO DO BANCO DE DADOS
+CREATE DATABASE IF NOT EXISTS sys_lab;
 USE sys_lab;
 
--- ----------------------------------------------------
--- 1. ENTIDADES INDEPENDENTES
--- ----------------------------------------------------
-CREATE TABLE USUARIO (
+-- 2. TABELA USUARIO (Professor / Admin)
+CREATE TABLE usuario (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
-    nome VARCHAR(50) NOT NULL,
-    email VARCHAR(50) UNIQUE NOT NULL,
-    senha VARCHAR(80) NOT NULL 
-);
-
-CREATE TABLE LABORATORIO (
-    id_lab INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
-    localizacao VARCHAR(200),
-    capacidade INTEGER NOT NULL,
-    descricao VARCHAR(500)
+    email VARCHAR(100) UNIQUE NOT NULL,
+    senha VARCHAR(255) NOT NULL,
+    tipo ENUM('PROFESSOR', 'ADMIN') NOT NULL DEFAULT 'PROFESSOR',
+    ativo BOOLEAN NOT NULL DEFAULT TRUE
 );
 
-CREATE TABLE EQUIPAMENTO (
-    id_equipamento INT AUTO_INCREMENT PRIMARY KEY,
+-- 3. TABELA SALA
+CREATE TABLE sala (
+    id_sala INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
-    descricao VARCHAR(500)
+    capacidade INT NOT NULL,
+    status ENUM('DISPONIVEL', 'MANUTENCAO') NOT NULL DEFAULT 'DISPONIVEL'
 );
 
--- ----------------------------------------------------
--- 2. TABELA DE DOMÍNIO/STATUS (Não referencia a RESERVA)
--- ----------------------------------------------------
-CREATE TABLE STATUS_RESERVA (
-    id_status INT AUTO_INCREMENT PRIMARY KEY,
-    descricao VARCHAR(100) UNIQUE NOT NULL
+-- 4. TABELA RECURSO (projetor, TV, AC...)
+CREATE TABLE recurso (
+    id_recurso INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) UNIQUE NOT NULL
 );
- 
--- ----------------------------------------------------
--- 3. HORA_FUNCIONAMENTO (Depende de LABORATORIO)
--- ----------------------------------------------------
-CREATE TABLE HORA_FUNCIONAMENTO (
+
+-- 5. TABELA SALA_RECURSO (N:N entre sala e recurso)
+CREATE TABLE sala_recurso (
+    fk_sala INT NOT NULL,
+    fk_recurso INT NOT NULL,
+    PRIMARY KEY (fk_sala, fk_recurso),
+    FOREIGN KEY (fk_sala) REFERENCES sala(id_sala) ON DELETE CASCADE,
+    FOREIGN KEY (fk_recurso) REFERENCES recurso(id_recurso) ON DELETE CASCADE
+);
+
+-- 6. TABELA HORARIO (Turnos fixos)
+CREATE TABLE horario (
     id_horario INT AUTO_INCREMENT PRIMARY KEY,
-    dia_semana VARCHAR(20) NOT NULL,
+    turno ENUM('MANHA', 'TARDE', 'NOITE') UNIQUE NOT NULL,
     hora_inicio TIME NOT NULL,
-    hora_fim TIME NOT NULL,
-    FK_LABORATORIO_id_lab INT NOT NULL
+    hora_fim TIME NOT NULL
 );
 
-ALTER TABLE HORA_FUNCIONAMENTO ADD CONSTRAINT FK_HORA_FUNCIONAMENTO_LAB
-    FOREIGN KEY (FK_LABORATORIO_id_lab)
-    REFERENCES LABORATORIO (id_lab)
-    ON DELETE CASCADE; -- Mudei para CASCADE, se o LAB for deletado, seus horários também.
-
--- ----------------------------------------------------
--- 4. RESERVA (Depende de USUARIO, LABORATORIO e STATUS_RESERVA)
--- Agora pode ser criada antes de STATUS_RESERVA ser alterada.
--- ----------------------------------------------------
-CREATE TABLE RESERVA (
+-- 7. TABELA RESERVA
+CREATE TABLE reserva (
     id_reserva INT AUTO_INCREMENT PRIMARY KEY,
-    data_inicio TIMESTAMP NOT NULL,
-    data_fim TIMESTAMP NOT NULL,
-    motivo VARCHAR(200),
-    FK_USUARIO_id_usuario INT NOT NULL,
-    FK_LABORATORIO_id_lab INT NOT NULL,
-    FK_STATUS_RESERVA_id_status INT NOT NULL
+    fk_usuario INT NOT NULL,
+    fk_sala INT NOT NULL,
+    fk_horario INT NOT NULL,
+    data_reserva DATE NOT NULL,
+    motivo VARCHAR(255),
+
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    status ENUM('CONFIRMADA', 'CANCELADA', 'EXPIRADA') DEFAULT 'CONFIRMADA',
+
+    FOREIGN KEY (fk_usuario) REFERENCES usuario(id_usuario),
+    FOREIGN KEY (fk_sala) REFERENCES sala(id_sala),
+    FOREIGN KEY (fk_horario) REFERENCES horario(id_horario),
+
+    -- impede conflito de sala no turno
+    UNIQUE KEY unq_reserva (fk_sala, fk_horario, data_reserva),
+    -- impede um professor reservar 2 salas no mesmo horário (RN3)
+    UNIQUE KEY unq_professor_turno (fk_usuario, fk_horario, data_reserva)
 );
 
-ALTER TABLE RESERVA ADD CONSTRAINT FK_RESERVA_USUARIO
-    FOREIGN KEY (FK_USUARIO_id_usuario)
-    REFERENCES USUARIO (id_usuario)
-    ON DELETE CASCADE;
+-- 8. TABELA AUDITORIA
+CREATE TABLE auditoria (
+    id_log INT AUTO_INCREMENT PRIMARY KEY,
+    fk_usuario INT,
+    acao VARCHAR(50),
+    descricao TEXT,
+    data_log TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
-ALTER TABLE RESERVA ADD CONSTRAINT FK_RESERVA_LABORATORIO
-    FOREIGN KEY (FK_LABORATORIO_id_lab)
-    REFERENCES LABORATORIO (id_lab)
-    ON DELETE CASCADE;
-    
-ALTER TABLE RESERVA ADD CONSTRAINT FK_RESERVA_STATUS
-    FOREIGN KEY (FK_STATUS_RESERVA_id_status)
-    REFERENCES STATUS_RESERVA (id_status)
-    ON DELETE RESTRICT;
-
--- ----------------------------------------------------
--- 5. LAB_EQUIPAMENTO (Tabela Associativa)
--- ----------------------------------------------------
-CREATE TABLE LAB_EQUIPAMENTO (
-    FK_EQUIPAMENTO_id_equipamento INT,
-    FK_LABORATORIO_id_lab INT,
-    PRIMARY KEY (FK_EQUIPAMENTO_id_equipamento, FK_LABORATORIO_id_lab)
+    FOREIGN KEY (fk_usuario) REFERENCES usuario(id_usuario)
 );
 
-ALTER TABLE LAB_EQUIPAMENTO ADD CONSTRAINT FK_LAB_EQUIPAMENTO_EQUIP
-    FOREIGN KEY (FK_EQUIPAMENTO_id_equipamento)
-    REFERENCES EQUIPAMENTO (id_equipamento)
-    ON DELETE CASCADE;
-
-ALTER TABLE LAB_EQUIPAMENTO ADD CONSTRAINT FK_LAB_EQUIPAMENTO_LAB
-    FOREIGN KEY (FK_LABORATORIO_id_lab)
-    REFERENCES LABORATORIO (id_lab)
-    ON DELETE CASCADE;
+-- 9. CARGA INICIAL DOS TURNOS FIXOS
+INSERT INTO horario (turno, hora_inicio, hora_fim) VALUES
+('MANHA', '09:00:00', '12:00:00'),
+('TARDE', '13:00:00', '18:00:00'),
+('NOITE', '19:00:00', '22:00:00');
