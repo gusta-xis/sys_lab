@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/reservas.css">
+    <title>Salas Disponíveis</title>
+
+    <script>
+        let salaSelecionadaData = null;
+
+        const mapaTurnos = {
+            1: "MANHÃ (09:00 - 12:00)",
+            2: "TARDE (13:00 - 18:00)",
+            3: "NOITE (19:00 - 22:00)"
+        };
+
+        const iconesTurnos = {
+            1: `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e67e22" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="M20 12h2"/><path d="m19.07 4.93-1.41 1.41"/><path d="M12 17a5 5 0 0 0 5-5H7a5 5 0 0 0 5 5Z"/><path d="M2 12h2"/><path d="M22 22H2"/></svg>`,
+            2: `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f39c12" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><path d="M12 1v2"/><path d="M12 21v2"/><path d="M4.22 4.22l1.42 1.42"/><path d="M18.36 18.36l1.42 1.42"/><path d="M1 12h2"/><path d="M21 12h2"/><path d="M4.22 19.78l1.42-1.42"/><path d="M18.36 5.64l1.42-1.42"/></svg>`,
+            3: `<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#2c3e50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>`
+        };
+
+        async function buscarSalas() {
+            const data = document.getElementById("data_reserva").value;
+            const horarioSelect = document.getElementById("horario").value;
+            const btnConfirmar = document.getElementById("btn-confirmar");
+            const areaPrincipal = document.getElementById("area-salas-dinamica");
+
+            areaPrincipal.innerHTML = "";
+            document.getElementById("msg-sem-salas").style.display = "none";
+            btnConfirmar.disabled = true;
+            salaSelecionadaData = null;
+
+            if (!data) {
+                alert("Selecione a data.");
+                return;
+            }
+
+            const horarioParam = horarioSelect === "0" ? "" : horarioSelect;
+            const url = `/api/sala/disponiveis?data_reserva=${data}&fk_horario=${horarioParam}`;
+
+            try {
+                const res = await fetch(url);
+                const json = await res.json();
+
+                if (!json.sucesso) {
+                    alert(`Erro: ${json.erro}`);
+                    return;
+                }
+
+                if (json.data.length === 0) {
+                    document.getElementById("msg-sem-salas").style.display = "block";
+                    return;
+                }
+
+                const salasAgrupadas = {};
+
+                json.data.forEach((item) => {
+                    if (!salasAgrupadas[item.id_sala]) {
+                        salasAgrupadas[item.id_sala] = {
+                            nome: item.nome,
+                            turnosDisponiveis: []
+                        };
+                    }
+                    salasAgrupadas[item.id_sala].turnosDisponiveis.push(item);
+                });
+
+                for (const idSala in salasAgrupadas) {
+                    const dadosSala = salasAgrupadas[idSala];
+                    
+                    const divBlocoSala = document.createElement('div');
+                    divBlocoSala.className = 'bloco-sala';
+
+                    const titulo = document.createElement('h3');
+                    titulo.className = 'titulo-sala';
+                    titulo.innerText = dadosSala.nome;
+                    divBlocoSala.appendChild(titulo);
+
+                    const divTurnos = document.createElement('div');
+                    divTurnos.className = 'grupo-turnos';
+
+                    dadosSala.turnosDisponiveis.forEach(s => {
+                        let idTurno = s.fk_horario || horarioSelect;
+                        if(!idTurno || idTurno == "0") return;
+                        
+                        let nomeTurno = mapaTurnos[idTurno] || "Turno Indefinido";
+                        let iconeSVG = iconesTurnos[idTurno] || "";
+
+                        const card = document.createElement('div');
+                        card.className = 'sala-card';
+
+                        const dadosParaSalvar = {
+                            fk_sala: s.id_sala,
+                            fk_horario: idTurno,
+                            nomeSala: s.nome,
+                            nomeTurno: nomeTurno
+                        };
+
+                        card.onclick = () => selecionarSala(card, dadosParaSalvar);
+
+                        card.innerHTML = `
+                            <div class="info-sala">
+                                <span style="font-weight:bold; color:#333;">${nomeTurno}</span><br>
+                                <span>Capacidade: ${s.capacidade}</span><br>
+                                <span class="status-ok">${s.status}</span>
+                            </div>
+                            <div style="padding-left: 10px;">
+                                ${iconeSVG}
+                            </div>
+                        `;
+                        
+                        divTurnos.appendChild(card);
+                    });
+
+                    divBlocoSala.appendChild(divTurnos);
+                    areaPrincipal.appendChild(divBlocoSala);
+                }
+
+            } catch (erro) {
+                console.error(erro);
+                alert("Erro ao buscar salas.");
+            }
+        }
+
+        function selecionarSala(elementoHtml, dados) {
+            const cards = document.querySelectorAll('.sala-card');
+            cards.forEach(c => c.classList.remove('selecionada'));
+
+            elementoHtml.classList.add('selecionada');
+
+            salaSelecionadaData = dados;
+            document.getElementById("btn-confirmar").disabled = false;
+        }
+
+        // TODOS, IREMOS PRECISAR DISSO
+        function confirmarReserva() {
+            if (!salaSelecionadaData) return;
+            
+            const data = document.getElementById("data_reserva").value;
+
+            alert(`DADOS PARA O BANCO DE DADOS:\n
+fk_sala: ${salaSelecionadaData.fk_sala}
+fk_horario: ${salaSelecionadaData.fk_horario}
+data_reserva: ${data}
+-------------------------
+(Visual: ${salaSelecionadaData.nomeSala} - ${salaSelecionadaData.nomeTurno})`);
+        }
+    </script>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Buscar Salas Disponíveis</h2>
+
+        <label>Data:</label>
+        <input type="date" id="data_reserva">
+
+        <label>Horário:</label>
+        <select id="horario">
+            <option value="0" selected>Todos os Turnos</option>
+            <option value="1">MANHÃ (09:00 - 12:00)</option>
+            <option value="2">TARDE (13:00 - 18:00)</option>
+            <option value="3">NOITE (19:00 - 22:00)</option>
+        </select>
+
+        <button class="btn-buscar" onclick="buscarSalas()">Buscar</button>
+
+        <hr>
+
+        <p id="msg-sem-salas" style="display:none; text-align:center; color:#666;">Nenhuma sala disponível.</p>
+
+        <div id="area-salas-dinamica"></div>
+
+        <button id="btn-confirmar" onclick="confirmarReserva()" disabled>
+            Confirmar Reserva
+        </button>
+    </div>
+
+</body>
+</html>

@@ -4,34 +4,62 @@ function salvarReserva(reserva, callback) {
     const { fk_usuario, fk_sala, fk_horario, data_reserva, motivo, status } = reserva;
 
     db.query(
-        'INSERT INTO reserva (fk_usuario, fk_sala, fk_horario, data_reserva, motivo, status) VALUES (?, ?, ?, ?, ?, ?)',
-        [fk_usuario, fk_sala, fk_horario, data_reserva, motivo || null, status || 'CONFIRMADA'],
+        `INSERT INTO reserva 
+        (fk_usuario, fk_sala, fk_horario, data_reserva, motivo, status)
+        VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+            fk_usuario,
+            fk_sala,
+            fk_horario,
+            data_reserva,
+            motivo || null,
+            status || 'CONFIRMADA'
+        ],
         callback
     );
 }
 
 function salvarReservasEmLote(lista, callback) {
     db.query(
-        'INSERT INTO reserva (fk_usuario, fk_sala, fk_horario, data_reserva, motivo, status) VALUES ?',
+        `INSERT INTO reserva 
+        (fk_usuario, fk_sala, fk_horario, data_reserva, motivo, status)
+        VALUES ?`,
         [lista],
         callback
     );
 }
 
 function buscarTodas(callback) {
-    db.query('SELECT * FROM reserva ORDER BY id_reserva DESC', callback);
+    db.query(
+        `SELECT * FROM reserva ORDER BY id_reserva DESC`,
+        callback
+    );
 }
 
 function buscarPorId(id, callback) {
-    db.query('SELECT * FROM reserva WHERE id_reserva = ?', [id], callback);
+    db.query(
+        `SELECT * FROM reserva WHERE id_reserva = ?`,
+        [id],
+        callback
+    );
 }
 
 function atualizarReserva(id, reserva, callback) {
     const { fk_usuario, fk_sala, fk_horario, data_reserva, motivo, status } = reserva;
 
     db.query(
-        'UPDATE reserva SET fk_usuario=?, fk_sala=?, fk_horario=?, data_reserva=?, motivo=?, status=? WHERE id_reserva=?',
-        [fk_usuario, fk_sala, fk_horario, data_reserva, motivo || null, status, id],
+        `UPDATE reserva 
+        SET fk_usuario=?, fk_sala=?, fk_horario=?, data_reserva=?, motivo=?, status=? 
+        WHERE id_reserva=?`,
+        [
+            fk_usuario,
+            fk_sala,
+            fk_horario,
+            data_reserva,
+            motivo || null,
+            status,
+            id
+        ],
         callback
     );
 }
@@ -45,7 +73,11 @@ function atualizarParcial(id, camposSQL, valores, callback) {
 }
 
 function deletarReserva(id, callback) {
-    db.query('DELETE FROM reserva WHERE id_reserva = ?', [id], callback);
+    db.query(
+        `DELETE FROM reserva WHERE id_reserva = ?`,
+        [id],
+        callback
+    );
 }
 
 module.exports = {
