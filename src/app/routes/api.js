@@ -1,23 +1,13 @@
+// app/routes/api.js
 const express = require('express');
 const router = express.Router();
 
-const usuarioRoutes = require('./usuario');
-router.use('/usuario', usuarioRoutes);
-
-const horarioDisponivel = require('./horario-disponivel');
-router.use ('/horarioDisponivel', horarioDisponivel);
-
-const salaRoutes = require('./sala');
-router.use('/sala', salaRoutes);
-
-const recursoRoutes = require('./recurso');
-router.use('/recurso', recursoRoutes);
-
-const slotRoutes = require('./slot-reserva');
-router.use('/slotReserva', slotRoutes);
-
-const reservaRoutes = require('./reserva');
-router.use('/reserva', reservaRoutes);
-
+router.use('/auditoria', require('../controllers/auditoriaController'));
+router.use('/horario', require('../controllers/horarioController'));
+router.use('/recurso', require('../controllers/recursoController'));
+router.use('/reserva', require('../controllers/reservaController'));
+router.use('/sala-recurso', require('../controllers/salaRecursoController'));
+router.use('/sala', require('../controllers/salaController'));
+router.use('/usuario', require('../controllers/usuarioControllerrio'));
 
 module.exports = router;

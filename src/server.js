@@ -1,22 +1,27 @@
+// src/server.js
 const express = require('express');
-const app = express();
-const port = 3000;
-
-const db = require('./app/db');
 const path = require('path');
-
-app.use(express.static('public'));
 const apiRoutes = require('./app/routes/api');
 
-app.use(express.static('public'));
-app.use(express.json());
+const app = express();
 
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'))
-})
+// Middlewares para parsing de JSON e URL-encoded
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use('/api', apiRoutes);
 
-app.listen(port, () => {
-  console.log(`Servidor funcionando`)
-})
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/health', (req, res) => {
+    res.json({ status: 'ok' });
+});
+
+if (process.env.NODE_ENV !== 'test') {
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => {
+        console.log(`Servidor rodando na porta ${PORT}`);
+    });
+}
+
+module.exports = app;
