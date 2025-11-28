@@ -1,9 +1,12 @@
+/* --- PADRÃO GERAL DO PORTAL --- */
 body {
     background-color: #f3f4f6;
     overflow-x: hidden;
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* --- LAYOUT DO PORTAL --- */
+/* --- LAYOUT PADRÃO (Igual ao Admin/Portal) --- */
 #wrapper {
     display: flex;
     width: 100%;
@@ -72,6 +75,148 @@ body {
     padding: 15px 30px;
 }
 
+/* --- ESTILOS ESPECÍFICOS DO RELATÓRIO/FORMULÁRIO --- */
+.section-title {
+    border-bottom: 2px solid #e9ecef;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    margin-top: 30px;
+    color: #495057;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+/* Cards de Relatório / Reservas */
+.reserva-card {
+    background-color: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-left: 5px solid #ccc; /* padrão */
+}
+
+.reserva-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Cores laterais */
+.border-confirmada {
+    border-left-color: #198754 !important;
+}
+
+.border-cancelada {
+    border-left-color: #dc3545 !important;
+}
+
+.border-passada {
+    border-left-color: #6c757d !important;
+}
+
+/* Conteúdo dos cards */
+.reserva-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 10px;
+}
+
+.reserva-sala {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #212529;
+}
+
+.reserva-data {
+    font-size: 0.9rem;
+    color: #6c757d;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.reserva-motivo {
+    background-color: #f8f9fa;
+    padding: 8px;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    color: #555;
+    margin-top: 10px;
+}
+
+/* Inputs e selects com padrão do portal */
+input[type="date"],
+input[type="text"],
+select {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    background-color: #fff;
+    transition: 0.3s;
+    box-sizing: border-box;
+}
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: #0d6efd;
+    box-shadow: 0 0 5px rgba(13,110,253,0.3);
+}
+
+/* Botões */
+button {
+    width: 100%;
+    padding: 14px;
+    background-color: #0d6efd;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: 0.3s;
+    margin-top: 10px;
+}
+
+button:hover:not(:disabled) {
+    background-color: #0b5ed7;
+}
+
+button:active:not(:disabled) {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Botões especiais */
+.btn-pdf {
+    background-color: #198754;
+}
+
+.btn-pdf:hover:not(:disabled) {
+    background-color: #157347;
+}
+
+.btn-voltar {
+    background-color: #6c757d;
+}
+
+.btn-voltar:hover:not(:disabled) {
+    background-color: #5c636a;
+}
+
+/* --- RESPONSIVIDADE --- */
 @media (max-width: 768px) {
     #sidebar-wrapper {
         margin-left: -250px;
@@ -86,6 +231,7 @@ body {
     }
 }
 
+/* Overlay mobile */
 #overlay {
     display: none;
     position: fixed;
@@ -99,156 +245,4 @@ body {
 
 #wrapper.toggled #overlay {
     display: block;
-}
-
-/* --- CARD RELATORIO --- */
-.card-relatorio {
-    border: none;
-    border-radius: 10px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
-    background-color: white;
-    padding: 30px;
-    max-width: 800px;
-    margin: 0 auto;
-    /* Centraliza */
-}
-
-.texto-instrucao {
-    color: #6c757d;
-    margin-bottom: 25px;
-    font-size: 0.95rem;
-}
-
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f4f4f9;
-    color: #333;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
-    padding: 20px;
-}
-
-.container {
-    width: 100%;
-    max-width: 900px;
-    background-color: transparent;
-    box-sizing: border-box;
-}
-
-h2 {
-    text-align: center;
-    color: #2c3e50;
-    margin-bottom: 25px;
-}
-
-hr {
-    border: 0;
-    height: 1px;
-    background: #e0e0e0;
-    margin: 25px 0;
-}
-
-/* Estilo do container branco */
-.bloco-sala {
-    background-color: #fff;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 25px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
-}
-
-label {
-    font-weight: 600;
-    margin-bottom: 5px;
-    display: block;
-    color: #555;
-}
-
-/* Inputs e Selects */
-input[type="date"],
-select,
-input[type="text"] {
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 20px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    font-size: 16px;
-    background-color: #fff;
-    transition: border-color 0.3s, box-shadow 0.3s;
-    box-sizing: border-box;
-}
-
-input:focus,
-select:focus {
-    outline: none;
-    border-color: #4a90e2;
-    box-shadow: 0 0 5px rgba(74, 144, 226, 0.3);
-}
-
-/* Botões Gerais */
-button {
-    width: 100%;
-    padding: 14px;
-    background-color: #4a90e2;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    transition: background-color 0.3s, transform 0.1s, opacity 0.3s;
-    margin-top: 10px;
-}
-
-button:hover:not(:disabled) {
-    background-color: #357abd;
-}
-
-button:active:not(:disabled) {
-    transform: scale(0.98);
-}
-
-button:disabled {
-    background-color: #cccccc;
-    cursor: not-allowed;
-    opacity: 0.7;
-}
-
-/* --- ESTILOS ESPECÍFICOS PARA RELATÓRIOS --- */
-
-.texto-instrucao {
-    text-align: center;
-    color: #666;
-    margin-bottom: 20px;
-}
-
-.btn-pdf {
-    background-color: #27ae60;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.btn-pdf:hover:not(:disabled) {
-    background-color: #219150;
-}
-
-.btn-voltar {
-    background-color: #95a5a6;
-    margin-top: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-}
-
-.btn-voltar:hover:not(:disabled) {
-    background-color: #7f8c8d;
 }
